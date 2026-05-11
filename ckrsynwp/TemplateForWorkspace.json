@@ -1,0 +1,3130 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"type": "string",
+			"metadata": "Workspace name",
+			"defaultValue": "ckrsynwp"
+		},
+		"ckrsynwp-WorkspaceDefaultSqlServer_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ckrsynwp-WorkspaceDefaultSqlServer'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ckrsynwp.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"ckrsynwp-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://ckrsynstorage.dfs.core.windows.net"
+		},
+		"transactions_event_trigger_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Storage/storageAccounts/ckrsynstorage"
+		}
+	},
+	"variables": {
+		"workspaceId": "[concat('Microsoft.Synapse/workspaces/', parameters('workspaceName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('workspaceName'), '/Cards Raw Data Ingestion')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "input/cards_data/",
+									"wildcardFileName": "*csv",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText4",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Parquet3",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Notebook1",
+						"type": "SynapseNotebook",
+						"dependsOn": [
+							{
+								"activity": "Copy data1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "Cards_Bronze_Notebook",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"sparkPool": {
+								"referenceName": "smallpool",
+								"type": "BigDataPoolReference"
+							},
+							"executorSize": "Small",
+							"conf": {
+								"spark.dynamicAllocation.enabled": null,
+								"spark.dynamicAllocation.minExecutors": null,
+								"spark.dynamicAllocation.maxExecutors": null
+							},
+							"driverSize": "Small",
+							"numExecutors": null
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-05-11T16:36:41Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText4')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet3')]",
+				"[concat(variables('workspaceId'), '/notebooks/Cards_Bronze_Notebook')]",
+				"[concat(variables('workspaceId'), '/bigDataPools/smallpool')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Customers raw data ingestion')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "copying users data to bronze",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFolderPath": "input/users_data/",
+									"wildcardFileName": "*csv",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Parquet2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Notebook1",
+						"type": "SynapseNotebook",
+						"dependsOn": [
+							{
+								"activity": "copying users data to bronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "Customers_Bronze_Notebook",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"sparkPool": {
+								"referenceName": "smallpool",
+								"type": "BigDataPoolReference"
+							},
+							"executorSize": "Small",
+							"conf": {
+								"spark.dynamicAllocation.enabled": null,
+								"spark.dynamicAllocation.minExecutors": null,
+								"spark.dynamicAllocation.maxExecutors": null
+							},
+							"driverSize": "Small",
+							"numExecutors": null
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"latestFolder": {
+						"type": "String",
+						"defaultValue": "0000-00-00"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-05-11T16:02:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText2')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet2')]",
+				"[concat(variables('workspaceId'), '/notebooks/Customers_Bronze_Notebook')]",
+				"[concat(variables('workspaceId'), '/bigDataPools/smallpool')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Transactions Raw Data Ingestion')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copying Raw data to Bronze",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*csv",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Parquet1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Notebook1",
+						"type": "SynapseNotebook",
+						"dependsOn": [
+							{
+								"activity": "Copying Raw data to Bronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebook": {
+								"referenceName": "Transactions_Bronze_Notebook",
+								"type": "NotebookReference"
+							},
+							"snapshot": true,
+							"sparkPool": {
+								"referenceName": "smallpool",
+								"type": "BigDataPoolReference"
+							},
+							"executorSize": "Small",
+							"conf": {
+								"spark.dynamicAllocation.enabled": null,
+								"spark.dynamicAllocation.minExecutors": null,
+								"spark.dynamicAllocation.maxExecutors": null
+							},
+							"driverSize": "Small",
+							"numExecutors": null,
+							"authentication": {
+								"type": "MSI"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-05-11T14:12:18Z"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet1')]",
+				"[concat(variables('workspaceId'), '/notebooks/Transactions_Bronze_Notebook')]",
+				"[concat(variables('workspaceId'), '/bigDataPools/smallpool')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "input/transactions_data",
+						"fileSystem": "rawdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "date",
+						"type": "String"
+					},
+					{
+						"name": "client_id",
+						"type": "String"
+					},
+					{
+						"name": "card_id",
+						"type": "String"
+					},
+					{
+						"name": "amount",
+						"type": "String"
+					},
+					{
+						"name": "use_chip",
+						"type": "String"
+					},
+					{
+						"name": "merchant_id",
+						"type": "String"
+					},
+					{
+						"name": "merchant_city",
+						"type": "String"
+					},
+					{
+						"name": "merchant_state",
+						"type": "String"
+					},
+					{
+						"name": "zip",
+						"type": "String"
+					},
+					{
+						"name": "mcc",
+						"type": "String"
+					},
+					{
+						"name": "errors",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "input/users_data",
+						"fileSystem": "rawdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "current_age",
+						"type": "String"
+					},
+					{
+						"name": "retirement_age",
+						"type": "String"
+					},
+					{
+						"name": "birth_year",
+						"type": "String"
+					},
+					{
+						"name": "birth_month",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "address",
+						"type": "String"
+					},
+					{
+						"name": "latitude",
+						"type": "String"
+					},
+					{
+						"name": "longitude",
+						"type": "String"
+					},
+					{
+						"name": "per_capita_income",
+						"type": "String"
+					},
+					{
+						"name": "yearly_income",
+						"type": "String"
+					},
+					{
+						"name": "total_debt",
+						"type": "String"
+					},
+					{
+						"name": "credit_score",
+						"type": "String"
+					},
+					{
+						"name": "num_credit_cards",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText3')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "input/users_data",
+						"fileSystem": "rawdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "current_age",
+						"type": "String"
+					},
+					{
+						"name": "retirement_age",
+						"type": "String"
+					},
+					{
+						"name": "birth_year",
+						"type": "String"
+					},
+					{
+						"name": "birth_month",
+						"type": "String"
+					},
+					{
+						"name": "gender",
+						"type": "String"
+					},
+					{
+						"name": "address",
+						"type": "String"
+					},
+					{
+						"name": "latitude",
+						"type": "String"
+					},
+					{
+						"name": "longitude",
+						"type": "String"
+					},
+					{
+						"name": "per_capita_income",
+						"type": "String"
+					},
+					{
+						"name": "yearly_income",
+						"type": "String"
+					},
+					{
+						"name": "total_debt",
+						"type": "String"
+					},
+					{
+						"name": "credit_score",
+						"type": "String"
+					},
+					{
+						"name": "num_credit_cards",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DelimitedText4')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "input/cards_data",
+						"fileSystem": "rawdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "id",
+						"type": "String"
+					},
+					{
+						"name": "client_id",
+						"type": "String"
+					},
+					{
+						"name": "card_brand",
+						"type": "String"
+					},
+					{
+						"name": "card_type",
+						"type": "String"
+					},
+					{
+						"name": "card_number",
+						"type": "String"
+					},
+					{
+						"name": "expires",
+						"type": "String"
+					},
+					{
+						"name": "cvv",
+						"type": "String"
+					},
+					{
+						"name": "has_chip",
+						"type": "String"
+					},
+					{
+						"name": "num_cards_issued",
+						"type": "String"
+					},
+					{
+						"name": "credit_limit",
+						"type": "String"
+					},
+					{
+						"name": "acct_open_date",
+						"type": "String"
+					},
+					{
+						"name": "year_pin_last_changed",
+						"type": "String"
+					},
+					{
+						"name": "card_on_dark_web",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet1')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "transactions",
+						"fileSystem": "bronze"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('users_', formatDateTime(convertTimeZone(utcNow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd-HH-mm-ss'),'.parquet')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "users/@{formatDateTime(convertTimeZone(utcNow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd')}/",
+							"type": "Expression"
+						},
+						"fileSystem": "bronze"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet3')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('cards_', formatDateTime(convertTimeZone(utcNow(),'UTC','Eastern Standard Time'),'yyyy-MM-dd-HH-mm-ss'),'.parquet')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "cards/@{formatDateTime(utcNow(), 'yyyy-MM-dd')}",
+							"type": "Expression"
+						},
+						"fileSystem": "bronze"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/transactions_Data')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ckrsynwp-WorkspaceDefaultStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/ckrsynwp-WorkspaceDefaultStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Financial Analysis')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "PowerBIWorkspace",
+				"typeProperties": {
+					"workspaceID": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp",
+					"tenantID": "0131e67a-94fb-4477-94c9-2905eb13a539"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ckrsynwp-WorkspaceDefaultSqlServer')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"parameters": {
+					"DBName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"connectionString": "[parameters('ckrsynwp-WorkspaceDefaultSqlServer_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ckrsynwp-WorkspaceDefaultStorage')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ckrsynwp-WorkspaceDefaultStorage_properties_typeProperties_url')]"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/transactions_event_trigger')]",
+			"type": "Microsoft.Synapse/workspaces/triggers",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Transactions Raw Data Ingestion",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/rawdata/blobs/input/transactions_data",
+					"blobPathEndsWith": ".csv",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('transactions_event_trigger_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/pipelines/Transactions Raw Data Ingestion')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AutoResolveIntegrationRuntime')]",
+			"type": "Microsoft.Synapse/workspaces/integrationRuntimes",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "AutoResolve",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/WorkspaceSystemIdentity')]",
+			"type": "Microsoft.Synapse/workspaces/credentials",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Client_spending_analysis')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE EXTERNAL TABLE gold_client_spending\nWITH (\n    LOCATION = 'gold_client_spending',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = parquet_format\n)\nAS\nSELECT\n    client_id,\n    COUNT(*) AS total_transactions,\n    SUM(amount) AS total_spend,\n    AVG(amount) AS avg_transaction,\n    MAX(amount) AS max_transaction\nFROM fact_transactions AS t\nGROUP BY client_id;\n\nselect * from gold_client_spending",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Creating External location and format')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- =====================================================\n-- CREATE DATABASE (Optional)\n-- =====================================================\n\nCREATE DATABASE gold_db;\nGO\n\nUSE gold_db;\nGO\n\n-- DATA SOURCE pointing to ADLS Gen2\nCREATE EXTERNAL DATA SOURCE MyDataLake\nWITH (\n    LOCATION = 'https://ckrsynstorage.dfs.core.windows.net/gold'\n);\n\n--drop external data source MyDataLake2\n\nCREATE EXTERNAL DATA SOURCE MyDataLake2\nWITH (\n    LOCATION = 'https://ckrsynstorage.dfs.core.windows.net/'\n);\n\n\n-- Delta format definition\nCREATE EXTERNAL FILE FORMAT DeltaFormat\nWITH (\n    FORMAT_TYPE = DELTA\n);\n\n\nCREATE EXTERNAL FILE FORMAT parquet_format\nWITH (\n    FORMAT_TYPE = PARQUET\n);",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Creating views on silver tables')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "create view silver_users_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/users_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\n--drop view silver_transactions\n\ncreate view silver_transactions_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/transactions_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\ncreate view silver_cards_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/cards_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\n\nselect * from silver_users_vw\n\nselect * from silver_transactions_vw\n\nselect * from silver_cards_vw\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "abc_bank",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Merchant revenue')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE EXTERNAL TABLE gold_merchant_revenue\nWITH (\n    LOCATION = 'gold_merchant_revenue/',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = parquet_format\n)\nAS\nSELECT\n    merchant_id,\n    txn_year,\n    txn_month_name,\n    SUM(amount) AS total_revenue,\n    COUNT(*) AS txn_count,\n    AVG(amount) AS avg_ticket_size\nFROM fact_transactions AS t\nGROUP BY merchant_id, txn_year, txn_month_name;\n\nselect * from gold_merchant_revenue\n\ndrop external table gold_merchant_revenue",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT \n    t.name,\n    ds.location AS data_source\nFROM sys.external_tables t\nJOIN sys.external_data_sources ds\n    ON t.data_source_id = ds.data_source_id\nWHERE t.name = 'gold_merchant_revenue';",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/agg_merchant_mcc_sales')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE EXTERNAL TABLE dbo.agg_merchant_mcc_sales\nWITH (\n    LOCATION = 'agg_merchant_mcc_sales',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = parquet_format\n)\nAS\nSELECT\n    m.merchant_id,\n    m.mcc,\n    m.mcc_description,\n    m.merchant_city,\n    m.merchant_state,\n    COUNT(*) AS total_transactions,\n    SUM(f.amount) AS total_sales,\n    AVG(f.amount) AS avg_transaction_amount,\n    MAX(f.amount) AS highest_transaction,\n    MIN(f.amount) AS lowest_transaction\nFROM fact_transactions AS f\nJOIN dim_merchant_enriched AS m\nON f.merchant_id = m.merchant_id\nGROUP BY\n    m.merchant_id,\n    m.mcc,\n    m.mcc_description,\n    m.merchant_city,\n    m.merchant_state;\n\nselect top 10 mcc_description,total_sales from agg_merchant_mcc_sales\norder by total_sales desc \n\ndrop EXTERNAL table agg_merchant_mcc_sales",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dim_cards_external_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--drop EXTERNAL table dim_cards\n\nCREATE EXTERNAL TABLE dbo.dim_cards\n(\n    client_id VARCHAR(100),\n    card_brand VARCHAR(50),\n    card_type VARCHAR(50),\n    card_number VARCHAR(50),\n    has_chip VARCHAR(10),\n    num_cards_issued INT,\n    credit_limit FLOAT,\n    acct_open_date DATE,\n    year_pin_last_changed INT,\n    card_on_dark_web VARCHAR(10),\n    card_id VARCHAR(100),\n    load_date DATE,\n    load_timestamp DATETIME2,\n    source_folder VARCHAR(255),\n    expiry_month INT,\n    expiry_year INT\n)\nWITH (\n    LOCATION = 'dim_cards',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_cards\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dim_date_external_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--drop external table dim_date\n\nCREATE EXTERNAL TABLE dbo.dim_date\n(\n    txn_date DATE,\n    txn_year INT,\n    txn_month_name VARCHAR(20)\n)\nWITH (\n    LOCATION = 'dim_date',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_date\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dim_merchant_enriched_external_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "CREATE EXTERNAL TABLE dbo.dim_merchant_enriched\n(\n    mcc VARCHAR(20),\n    merchant_id VARCHAR(100),\n    merchant_city VARCHAR(100),\n    merchant_state VARCHAR(100),\n    zip VARCHAR(20),\n    mcc_description VARCHAR(255)\n)\nWITH (\n    LOCATION = 'dim_merchant_enriched',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_merchant_enriched",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/dim_users_external_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n--drop EXTERNAL table dim_users\n\nCREATE EXTERNAL TABLE dbo.dim_users\n(\n    current_age INT,\n    retirement_age INT,\n    birth_year INT,\n    birth_month INT,\n    gender VARCHAR(20),\n    address VARCHAR(500),\n    latitude FLOAT,\n    longitude FLOAT,\n    per_capita_income FLOAT,\n    yearly_income FLOAT,\n    total_debt FLOAT,\n    credit_score INT,\n    num_credit_cards INT,\n    load_date DATE,\n    load_timestamp DATETIME2,\n    source_folder VARCHAR(255),\n    client_id VARCHAR(100)\n)\nWITH (\n    LOCATION = 'dim_users',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\n\nselect * from dim_users",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/fact_transactions_external_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--drop EXTERNAL table dbo.fact_transactions\n\nCREATE EXTERNAL TABLE dbo.fact_transactions\n(\n    transaction_id VARCHAR(100),\n    txn_date DATE,\n    client_id VARCHAR(100),\n    card_id VARCHAR(100),\n    merchant_id VARCHAR(100),\n    amount FLOAT,\n    use_chip VARCHAR(20),\n    errors VARCHAR(500),\n    txn_year INT,\n    txn_month_name VARCHAR(20),\n    silver_load_time DATETIME2\n)\nWITH (\n    LOCATION = 'fact_transactions',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from fact_transactions",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "gold_db",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Cards_Bronze_Notebook')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "smallpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "e7a097f5-2a44-486a-bc2e-a75705ab8ac6"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1",
+						"state": {
+							"554e6005-5e84-46c3-aac7-526519dbf3a3": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "825",
+												"1": "Visa",
+												"2": "Debit",
+												"3": "****",
+												"4": "12/2022",
+												"5": "YES",
+												"6": "2",
+												"7": "$24,295",
+												"8": "09/2002",
+												"9": "2008",
+												"10": "No",
+												"11": "4524",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "825",
+												"1": "Visa",
+												"2": "Debit",
+												"3": "****",
+												"4": "12/2020",
+												"5": "YES",
+												"6": "2",
+												"7": "$21,968",
+												"8": "04/2014",
+												"9": "2014",
+												"10": "No",
+												"11": "2731",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "825",
+												"1": "Visa",
+												"2": "Debit",
+												"3": "****",
+												"4": "02/2024",
+												"5": "YES",
+												"6": "2",
+												"7": "$46,414",
+												"8": "07/2003",
+												"9": "2004",
+												"10": "No",
+												"11": "3701",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "825",
+												"1": "Visa",
+												"2": "Credit",
+												"3": "****",
+												"4": "08/2024",
+												"5": "NO",
+												"6": "1",
+												"7": "$12,400",
+												"8": "01/2003",
+												"9": "2012",
+												"10": "No",
+												"11": "42",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "825",
+												"1": "Mastercard",
+												"2": "Debit (Prepaid)",
+												"3": "****",
+												"4": "03/2009",
+												"5": "YES",
+												"6": "1",
+												"7": "$28",
+												"8": "09/2008",
+												"9": "2009",
+												"10": "No",
+												"11": "4659",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "1746",
+												"1": "Visa",
+												"2": "Credit",
+												"3": "****",
+												"4": "09/2003",
+												"5": "YES",
+												"6": "1",
+												"7": "$27,500",
+												"8": "09/2003",
+												"9": "2012",
+												"10": "No",
+												"11": "4537",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "1746",
+												"1": "Visa",
+												"2": "Debit",
+												"3": "****",
+												"4": "07/2022",
+												"5": "YES",
+												"6": "2",
+												"7": "$28,508",
+												"8": "02/2011",
+												"9": "2011",
+												"10": "No",
+												"11": "1278",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "1746",
+												"1": "Mastercard",
+												"2": "Debit",
+												"3": "****",
+												"4": "06/2022",
+												"5": "YES",
+												"6": "2",
+												"7": "$9,022",
+												"8": "07/2003",
+												"9": "2015",
+												"10": "No",
+												"11": "3687",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "1746",
+												"1": "Mastercard",
+												"2": "Debit (Prepaid)",
+												"3": "****",
+												"4": "11/2020",
+												"5": "YES",
+												"6": "2",
+												"7": "$54",
+												"8": "06/2010",
+												"9": "2015",
+												"10": "No",
+												"11": "3465",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											},
+											{
+												"0": "1746",
+												"1": "Mastercard",
+												"2": "Debit (Prepaid)",
+												"3": "****",
+												"4": "02/2023",
+												"5": "YES",
+												"6": "1",
+												"7": "$99",
+												"8": "07/2006",
+												"9": "2012",
+												"10": "No",
+												"11": "3754",
+												"12": "2026-05-11",
+												"13": "2026-05-11 16:34:07.013824",
+												"14": "2026-05-11"
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "client_id",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "card_brand",
+												"type": "string"
+											},
+											{
+												"key": "2",
+												"name": "card_type",
+												"type": "string"
+											},
+											{
+												"key": "3",
+												"name": "card_number",
+												"type": "string"
+											},
+											{
+												"key": "4",
+												"name": "expires",
+												"type": "string"
+											},
+											{
+												"key": "5",
+												"name": "has_chip",
+												"type": "string"
+											},
+											{
+												"key": "6",
+												"name": "num_cards_issued",
+												"type": "string"
+											},
+											{
+												"key": "7",
+												"name": "credit_limit",
+												"type": "string"
+											},
+											{
+												"key": "8",
+												"name": "acct_open_date",
+												"type": "string"
+											},
+											{
+												"key": "9",
+												"name": "year_pin_last_changed",
+												"type": "string"
+											},
+											{
+												"key": "10",
+												"name": "card_on_dark_web",
+												"type": "string"
+											},
+											{
+												"key": "11",
+												"name": "card_id",
+												"type": "string"
+											},
+											{
+												"key": "12",
+												"name": "load_date",
+												"type": "date"
+											},
+											{
+												"key": "13",
+												"name": "load_timestamp",
+												"type": "timestamp"
+											},
+											{
+												"key": "14",
+												"name": "source_folder",
+												"type": "string"
+											}
+										],
+										"truncated": false
+									},
+									"isSummary": false,
+									"language": "scala",
+									"wranglerEntryContext": {
+										"dataframeType": "pyspark"
+									}
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "count",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							}
+						}
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+						"name": "smallpool",
+						"type": "Spark",
+						"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.5",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 1 — IMPORT REQUIRED LIBRARIES\n",
+							"# =====================================================\n",
+							"\n",
+							"from notebookutils import mssparkutils\n",
+							"\n",
+							"from pyspark.sql.functions import *\n",
+							"from pyspark.sql.types import *"
+						],
+						"outputs": [],
+						"execution_count": 3
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 2 — DEFINE BRONZE & SILVER PATHS\n",
+							"# =====================================================\n",
+							"\n",
+							"bronze_base_path = \"abfss://bronze@ckrsynstorage.dfs.core.windows.net/cards/\"\n",
+							"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/cards_cleaned/\""
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 3 — GET ALL DATE FOLDERS\n",
+							"# =====================================================\n",
+							"\n",
+							"folders = mssparkutils.fs.ls(bronze_base_path)\n",
+							"\n",
+							"date_folders = [\n",
+							"    folder.name.replace(\"/\", \"\")\n",
+							"    for folder in folders\n",
+							"    if folder.isDir\n",
+							"]\n",
+							"\n",
+							"print(date_folders)"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 4 — FIND LATEST DATE FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"import builtins\n",
+							"\n",
+							"latest_folder = builtins.max(date_folders)\n",
+							"print(\"Latest Folder:\", latest_folder)"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 5 — BUILD FULL PATH OF LATEST FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"latest_folder_path = bronze_base_path + latest_folder + \"/\"\n",
+							"\n",
+							"print(latest_folder_path)"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 6 — GET FILES INSIDE LATEST FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"files = mssparkutils.fs.ls(latest_folder_path)\n",
+							"\n",
+							"data_files = [\n",
+							"    file.path\n",
+							"    for file in files\n",
+							"    if file.name.endswith(\".parquet\")\n",
+							"]\n",
+							"\n",
+							"print(data_files)"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 7 — CHECK IF FILE EXISTS\n",
+							"# =====================================================\n",
+							"\n",
+							"if len(data_files) == 0:\n",
+							"    \n",
+							"    print(\"No parquet files found\")\n",
+							"    \n",
+							"    mssparkutils.notebook.exit(\n",
+							"        \"Notebook stopped - no files to process\"\n",
+							"    )"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 8 — READ PARQUET FILES\n",
+							"# =====================================================\n",
+							"\n",
+							"df = spark.read.parquet(*data_files)\n",
+							"\n",
+							"df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# =====================================================\n",
+							"# STEP 9 — APPLY TRANSFORMATIONS\n",
+							"# =====================================================\n",
+							"\n",
+							"df_transformed = (\n",
+							"    df\n",
+							"    .withColumn(\"card_id\",col(\"id\")).drop(col(\"id\"))\n",
+							"    .withColumn(\"load_date\", current_date())\n",
+							"    .withColumn(\"load_timestamp\", current_timestamp())\n",
+							"    .withColumn(\"source_folder\", lit(latest_folder))\n",
+							"    .withColumn(\"card_number\", lit(\"****\"))\n",
+							"    .drop(\"cvv\")\n",
+							")\n",
+							"\n",
+							"\n",
+							"display(df_transformed.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 10 — OPTIONAL DATA CLEANING\n",
+							"# =====================================================\n",
+							"\n",
+							"df_cleaned = (\n",
+							"    df_transformed\n",
+							"    .dropDuplicates([\"card_id\"])\n",
+							"    .filter(col(\"card_id\").isNotNull())\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 11 — WRITE TO SILVER DELTA TABLE\n",
+							"# =====================================================\n",
+							"\n",
+							"(\n",
+							"    df_cleaned\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .mode(\"append\")\n",
+							"    .save(silver_path)\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 13
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"run_control": {
+								"frozen": true
+							},
+							"editable": false
+						},
+						"source": [
+							"# =====================================================\n",
+							"# STEP 12 — CREATE DELTA TABLE (OPTIONAL)\n",
+							"# =====================================================\n",
+							"\n",
+							"spark.sql(f\"\"\"\n",
+							"CREATE TABLE IF NOT EXISTS silver_users\n",
+							"USING DELTA\n",
+							"LOCATION '{silver_path}'\n",
+							"\"\"\")"
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 13 — VALIDATE DATA\n",
+							"# =====================================================\n",
+							"\n",
+							"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+							"\n",
+							"silver_df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_df.printSchema()"
+						],
+						"outputs": [],
+						"execution_count": 15
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Customers_Bronze_Notebook')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "smallpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "8aa275d3-719c-46ce-80fd-585c7904492d"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1",
+						"state": {
+							"94b4a34e-5d1d-4fb1-9fed-39ce07af8641": {
+								"type": "Synapse.DataFrame",
+								"sync_state": {
+									"table": {
+										"rows": [
+											{
+												"0": "53",
+												"1": "66",
+												"2": "1966",
+												"3": "11",
+												"4": "Female",
+												"5": "462 Rose Lane",
+												"6": "34.15",
+												"7": "-117.76",
+												"8": "$29,278",
+												"9": "$59,696",
+												"10": "$127,613",
+												"11": "787",
+												"12": "5",
+												"13": "825",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "53",
+												"1": "68",
+												"2": "1966",
+												"3": "12",
+												"4": "Female",
+												"5": "3606 Federal Boulevard",
+												"6": "40.76",
+												"7": "-73.74",
+												"8": "$37,891",
+												"9": "$77,254",
+												"10": "$191,349",
+												"11": "701",
+												"12": "5",
+												"13": "1746",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "81",
+												"1": "67",
+												"2": "1938",
+												"3": "11",
+												"4": "Female",
+												"5": "766 Third Drive",
+												"6": "34.02",
+												"7": "-117.89",
+												"8": "$22,681",
+												"9": "$33,483",
+												"10": "$196",
+												"11": "698",
+												"12": "5",
+												"13": "1718",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "63",
+												"1": "63",
+												"2": "1957",
+												"3": "1",
+												"4": "Female",
+												"5": "3 Madison Street",
+												"6": "40.71",
+												"7": "-73.99",
+												"8": "$163,145",
+												"9": "$249,925",
+												"10": "$202,328",
+												"11": "722",
+												"12": "4",
+												"13": "708",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "43",
+												"1": "70",
+												"2": "1976",
+												"3": "9",
+												"4": "Male",
+												"5": "9620 Valley Stream Drive",
+												"6": "37.76",
+												"7": "-122.44",
+												"8": "$53,797",
+												"9": "$109,687",
+												"10": "$183,855",
+												"11": "675",
+												"12": "1",
+												"13": "1164",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "42",
+												"1": "70",
+												"2": "1977",
+												"3": "10",
+												"4": "Male",
+												"5": "58 Birch Lane",
+												"6": "41.55",
+												"7": "-90.6",
+												"8": "$20,599",
+												"9": "$41,997",
+												"10": "$0",
+												"11": "704",
+												"12": "3",
+												"13": "68",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "36",
+												"1": "67",
+												"2": "1983",
+												"3": "12",
+												"4": "Female",
+												"5": "5695 Fifth Street",
+												"6": "38.22",
+												"7": "-85.74",
+												"8": "$25,258",
+												"9": "$51,500",
+												"10": "$102,286",
+												"11": "672",
+												"12": "3",
+												"13": "1075",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "26",
+												"1": "67",
+												"2": "1993",
+												"3": "12",
+												"4": "Male",
+												"5": "1941 Ninth Street",
+												"6": "45.51",
+												"7": "-122.64",
+												"8": "$26,790",
+												"9": "$54,623",
+												"10": "$114,711",
+												"11": "728",
+												"12": "1",
+												"13": "1711",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "81",
+												"1": "66",
+												"2": "1938",
+												"3": "7",
+												"4": "Female",
+												"5": "11 Spruce Avenue",
+												"6": "40.32",
+												"7": "-75.32",
+												"8": "$26,273",
+												"9": "$42,509",
+												"10": "$2,895",
+												"11": "755",
+												"12": "5",
+												"13": "1116",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											},
+											{
+												"0": "34",
+												"1": "60",
+												"2": "1986",
+												"3": "1",
+												"4": "Female",
+												"5": "887 Grant Street",
+												"6": "29.97",
+												"7": "-92.12",
+												"8": "$18,730",
+												"9": "$38,190",
+												"10": "$81,262",
+												"11": "810",
+												"12": "1",
+												"13": "1752",
+												"14": "2026-05-11",
+												"15": "2026-05-11 15:36:53.882203",
+												"16": "2026-05-11"
+											}
+										],
+										"schema": [
+											{
+												"key": "0",
+												"name": "current_age",
+												"type": "string"
+											},
+											{
+												"key": "1",
+												"name": "retirement_age",
+												"type": "string"
+											},
+											{
+												"key": "2",
+												"name": "birth_year",
+												"type": "string"
+											},
+											{
+												"key": "3",
+												"name": "birth_month",
+												"type": "string"
+											},
+											{
+												"key": "4",
+												"name": "gender",
+												"type": "string"
+											},
+											{
+												"key": "5",
+												"name": "address",
+												"type": "string"
+											},
+											{
+												"key": "6",
+												"name": "latitude",
+												"type": "string"
+											},
+											{
+												"key": "7",
+												"name": "longitude",
+												"type": "string"
+											},
+											{
+												"key": "8",
+												"name": "per_capita_income",
+												"type": "string"
+											},
+											{
+												"key": "9",
+												"name": "yearly_income",
+												"type": "string"
+											},
+											{
+												"key": "10",
+												"name": "total_debt",
+												"type": "string"
+											},
+											{
+												"key": "11",
+												"name": "credit_score",
+												"type": "string"
+											},
+											{
+												"key": "12",
+												"name": "num_credit_cards",
+												"type": "string"
+											},
+											{
+												"key": "13",
+												"name": "user_id",
+												"type": "string"
+											},
+											{
+												"key": "14",
+												"name": "load_date",
+												"type": "date"
+											},
+											{
+												"key": "15",
+												"name": "load_timestamp",
+												"type": "timestamp"
+											},
+											{
+												"key": "16",
+												"name": "source_folder",
+												"type": "string"
+											}
+										],
+										"truncated": false
+									},
+									"isSummary": false,
+									"language": "scala",
+									"wranglerEntryContext": {
+										"dataframeType": "pyspark"
+									}
+								},
+								"persist_state": {
+									"view": {
+										"type": "details",
+										"chartOptions": {
+											"chartType": "bar",
+											"aggregationType": "count",
+											"categoryFieldKeys": [
+												"0"
+											],
+											"seriesFieldKeys": [
+												"0"
+											],
+											"isStacked": false
+										}
+									}
+								}
+							}
+						}
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+						"name": "smallpool",
+						"type": "Spark",
+						"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.5",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 1 — IMPORT REQUIRED LIBRARIES\n",
+							"# =====================================================\n",
+							"\n",
+							"from notebookutils import mssparkutils\n",
+							"\n",
+							"from pyspark.sql.functions import *\n",
+							"from pyspark.sql.types import *"
+						],
+						"outputs": [],
+						"execution_count": 27
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 2 — DEFINE BRONZE & SILVER PATHS\n",
+							"# =====================================================\n",
+							"\n",
+							"bronze_base_path = \"abfss://bronze@ckrsynstorage.dfs.core.windows.net/users/\"\n",
+							"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/users_cleaned/\""
+						],
+						"outputs": [],
+						"execution_count": 29
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 3 — GET ALL DATE FOLDERS\n",
+							"# =====================================================\n",
+							"\n",
+							"folders = mssparkutils.fs.ls(bronze_base_path)\n",
+							"\n",
+							"date_folders = [\n",
+							"    folder.name.replace(\"/\", \"\")\n",
+							"    for folder in folders\n",
+							"    if folder.isDir\n",
+							"]\n",
+							"\n",
+							"print(date_folders)"
+						],
+						"outputs": [],
+						"execution_count": 15
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 4 — FIND LATEST DATE FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"import builtins\n",
+							"\n",
+							"latest_folder = builtins.max(date_folders)\n",
+							"print(\"Latest Folder:\", latest_folder)"
+						],
+						"outputs": [],
+						"execution_count": 16
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 5 — BUILD FULL PATH OF LATEST FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"latest_folder_path = bronze_base_path + latest_folder + \"/\"\n",
+							"\n",
+							"print(latest_folder_path)"
+						],
+						"outputs": [],
+						"execution_count": 17
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 6 — GET FILES INSIDE LATEST FOLDER\n",
+							"# =====================================================\n",
+							"\n",
+							"files = mssparkutils.fs.ls(latest_folder_path)\n",
+							"\n",
+							"data_files = [\n",
+							"    file.path\n",
+							"    for file in files\n",
+							"    if file.name.endswith(\".parquet\")\n",
+							"]\n",
+							"\n",
+							"print(data_files)"
+						],
+						"outputs": [],
+						"execution_count": 18
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 7 — CHECK IF FILE EXISTS\n",
+							"# =====================================================\n",
+							"\n",
+							"if len(data_files) == 0:\n",
+							"    \n",
+							"    print(\"No parquet files found\")\n",
+							"    \n",
+							"    mssparkutils.notebook.exit(\n",
+							"        \"Notebook stopped - no files to process\"\n",
+							"    )"
+						],
+						"outputs": [],
+						"execution_count": 19
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 8 — READ PARQUET FILES\n",
+							"# =====================================================\n",
+							"\n",
+							"df = spark.read.parquet(*data_files)\n",
+							"\n",
+							"df.show(5)"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"# =====================================================\n",
+							"# STEP 9 — APPLY TRANSFORMATIONS\n",
+							"# =====================================================\n",
+							"\n",
+							"df_transformed = (\n",
+							"    df\n",
+							"    .withColumn(\"user_id\",col(\"id\")).drop(col(\"id\"))\n",
+							"    .withColumn(\"load_date\", current_date())\n",
+							"    .withColumn(\"load_timestamp\", current_timestamp())\n",
+							"    .withColumn(\"source_folder\", lit(latest_folder))\n",
+							")\n",
+							"\n",
+							"display(df_transformed.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 10 — OPTIONAL DATA CLEANING\n",
+							"# =====================================================\n",
+							"\n",
+							"df_cleaned = (\n",
+							"    df_transformed\n",
+							"    .dropDuplicates([\"user_id\"])\n",
+							"    .filter(col(\"user_id\").isNotNull())\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 23
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 11 — WRITE TO SILVER DELTA TABLE\n",
+							"# =====================================================\n",
+							"\n",
+							"(\n",
+							"    df_cleaned\n",
+							"    .write\n",
+							"    .format(\"delta\")\n",
+							"    .mode(\"append\")\n",
+							"    .save(silver_path)\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"run_control": {
+								"frozen": true
+							},
+							"editable": false
+						},
+						"source": [
+							"# =====================================================\n",
+							"# STEP 12 — CREATE DELTA TABLE (OPTIONAL)\n",
+							"# =====================================================\n",
+							"\n",
+							"spark.sql(f\"\"\"\n",
+							"CREATE TABLE IF NOT EXISTS silver_users\n",
+							"USING DELTA\n",
+							"LOCATION '{silver_path}'\n",
+							"\"\"\")"
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"# =====================================================\n",
+							"# STEP 13 — VALIDATE DATA\n",
+							"# =====================================================\n",
+							"\n",
+							"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+							"\n",
+							"silver_df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+							"\n",
+							"silver_df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 30
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_df.printSchema()"
+						],
+						"outputs": [],
+						"execution_count": 31
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Gold_dim_and_fact_tables_creation')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "smallpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "14e95cb2-88e3-4b53-ba4a-5769344e50d4"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+						"name": "smallpool",
+						"type": "Spark",
+						"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "3.5",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/\"\n",
+							"gold_path = \"abfss://gold@ckrsynstorage.dfs.core.windows.net/\""
+						],
+						"outputs": [],
+						"execution_count": 50
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"from pyspark.sql.functions import *\n",
+							"\n",
+							"users_path = silver_path +\"users_cleaned\"\n",
+							"\n",
+							"silver_users_df = spark.read.format(\"delta\").load(users_path)\n",
+							"\n",
+							"dim_users = (\n",
+							"    silver_users_df\n",
+							"    .withColumn(\"client_id\",col(\"user_id\"))\n",
+							"    .withColumn(\"current_age\", col(\"current_age\").cast(\"int\"))\n",
+							"    .withColumn(\"retirement_age\", col(\"retirement_age\").cast(\"int\"))\n",
+							"    .withColumn(\"birth_year\", col(\"birth_year\").cast(\"int\"))\n",
+							"    .withColumn(\"birth_month\", col(\"birth_month\").cast(\"int\"))\n",
+							"    .withColumn(\"latitude\", col(\"latitude\").cast(\"double\"))\n",
+							"    .withColumn(\"longitude\", col(\"longitude\").cast(\"double\"))\n",
+							"    .withColumn(\"per_capita_income\", regexp_replace(col(\"per_capita_income\"), \"[$,]\", \"\").cast(\"double\"))\n",
+							"    .withColumn(\"yearly_income\", regexp_replace(col(\"yearly_income\"), \"[$,]\", \"\").cast(\"double\"))\n",
+							"    .withColumn(\"total_debt\", regexp_replace(col(\"total_debt\"), \"[$,]\", \"\").cast(\"double\"))\n",
+							"    .withColumn(\"credit_score\", col(\"credit_score\").cast(\"int\"))\n",
+							"    .withColumn(\"num_credit_cards\", col(\"num_credit_cards\").cast(\"int\"))\n",
+							"    .drop(col(\"user_id\"))\n",
+							")\n",
+							"\n",
+							"display(dim_users.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 53
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"cards_path = silver_path +\"cards_cleaned\"\n",
+							"\n",
+							"silver_cards_df = spark.read.format(\"delta\").load(cards_path)\n",
+							"\n",
+							"dim_cards = (\n",
+							"    silver_cards_df\n",
+							"    .withColumn(\"credit_limit\", regexp_replace(col(\"credit_limit\"), \"[$,]\", \"\").cast(\"double\"))\n",
+							"    .withColumn(\"expiry_month\", substring(\"expires\", 1, 2).cast(\"int\"))\n",
+							"    .withColumn(\"expiry_year\", substring(\"expires\", 4, 4).cast(\"int\"))\n",
+							"    .withColumn(\"num_cards_issued\", col(\"num_cards_issued\").cast(\"int\"))\n",
+							"    .withColumn(\"acct_open_date\", to_date(\"acct_open_date\"))\n",
+							"    .withColumn(\"year_pin_last_changed\", col(\"year_pin_last_changed\").cast(\"int\"))\n",
+							"    .dropDuplicates([\"card_id\"])\n",
+							"    .drop(col(\"expires\"))\n",
+							")\n",
+							"\n",
+							"display(dim_cards.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 56
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"transactions_path = silver_path +\"transactions_cleaned\"\n",
+							"\n",
+							"silver_transactions_df = spark.read.format(\"delta\").load(transactions_path)\n",
+							"\n",
+							"\n",
+							"fact_transactions = (\n",
+							"    silver_transactions_df\n",
+							"    .withColumn(\"amount\", regexp_replace(col(\"amount\"), \"[$,]\", \"\").cast(\"double\"))\n",
+							"    .withColumn(\"mcc\", col(\"mcc\").cast(\"int\"))\n",
+							"    .select(\n",
+							"        \"transaction_id\",\n",
+							"        \"txn_date\",\n",
+							"        \"client_id\",\n",
+							"        \"card_id\",\n",
+							"        \"merchant_id\",\n",
+							"        \"amount\",\n",
+							"        \"use_chip\",\n",
+							"        \"errors\",\n",
+							"        \"txn_year\",\n",
+							"        \"txn_month_name\",\n",
+							"        \"silver_load_time\"\n",
+							"    )\n",
+							")\n",
+							"\n",
+							"display(fact_transactions.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 62
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"dim_merchant = (\n",
+							"    silver_transactions_df\n",
+							"    .select(\"merchant_id\", \"merchant_city\", \"merchant_state\", \"zip\", \"mcc\")\n",
+							"    .dropDuplicates([\"merchant_id\"])\n",
+							")\n",
+							"\n",
+							"display(dim_merchant.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 43
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"collapsed": false
+						},
+						"source": [
+							"dim_date = (\n",
+							"    silver_transactions_df\n",
+							"    .select(\"txn_date\", \"txn_year\", \"txn_month_name\")\n",
+							"    .dropDuplicates([\"txn_date\"])\n",
+							")\n",
+							"\n",
+							"display(dim_date.limit(10))"
+						],
+						"outputs": [],
+						"execution_count": 45
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"def write_gold(df, table_name):\n",
+							"    (\n",
+							"        df.write\n",
+							"        .format(\"delta\")\n",
+							"        .mode(\"overwrite\")\n",
+							"        .save(f\"{gold_path}{table_name}\")\n",
+							"    )"
+						],
+						"outputs": [],
+						"execution_count": 51
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"write_gold(dim_cards, \"dim_cards\")\n",
+							"write_gold(dim_users, \"dim_users\")\n",
+							"write_gold(fact_transactions, \"fact_transactions\")\n",
+							"write_gold(dim_merchant_enriched, \"dim_merchant_enriched\")\n",
+							"write_gold(dim_date, \"dim_date\")"
+						],
+						"outputs": [],
+						"execution_count": 52
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"write_gold(fact_transactions, \"fact_transactions\")"
+						],
+						"outputs": [],
+						"execution_count": 63
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"mcc_dict = {\n",
+							"    \"5812\": \"Eating Places and Restaurants\",\n",
+							"    \"5541\": \"Service Stations\",\n",
+							"    \"7996\": \"Amusement Parks, Carnivals, Circuses\",\n",
+							"    \"5411\": \"Grocery Stores, Supermarkets\",\n",
+							"    \"4784\": \"Tolls and Bridge Fees\",\n",
+							"    \"4900\": \"Utilities - Electric, Gas, Water, Sanitary\",\n",
+							"    \"5942\": \"Book Stores\",\n",
+							"    \"5814\": \"Fast Food Restaurants\",\n",
+							"    \"4829\": \"Money Transfer\",\n",
+							"    \"5311\": \"Department Stores\",\n",
+							"    \"5211\": \"Lumber and Building Materials\",\n",
+							"    \"5310\": \"Discount Stores\",\n",
+							"    \"3780\": \"Computer Network Services\",\n",
+							"    \"5499\": \"Miscellaneous Food Stores\",\n",
+							"    \"4121\": \"Taxicabs and Limousines\",\n",
+							"    \"5300\": \"Wholesale Clubs\",\n",
+							"    \"5719\": \"Miscellaneous Home Furnishing Stores\",\n",
+							"    \"7832\": \"Motion Picture Theaters\",\n",
+							"    \"5813\": \"Drinking Places (Alcoholic Beverages)\",\n",
+							"    \"4814\": \"Telecommunication Services\",\n",
+							"    \"5661\": \"Shoe Stores\",\n",
+							"    \"5977\": \"Cosmetic Stores\",\n",
+							"    \"8099\": \"Medical Services\",\n",
+							"    \"7538\": \"Automotive Service Shops\",\n",
+							"    \"5912\": \"Drug Stores and Pharmacies\",\n",
+							"    \"4111\": \"Local and Suburban Commuter Transportation\",\n",
+							"    \"5815\": \"Digital Goods - Media, Books, Apps\",\n",
+							"    \"8021\": \"Dentists and Orthodontists\",\n",
+							"    \"5921\": \"Package Stores, Beer, Wine, Liquor\",\n",
+							"    \"5655\": \"Sports Apparel, Riding Apparel Stores\",\n",
+							"    \"7230\": \"Beauty and Barber Shops\",\n",
+							"    \"3390\": \"Miscellaneous Metalwork\",\n",
+							"    \"7922\": \"Theatrical Producers\",\n",
+							"    \"3722\": \"Passenger Railways\",\n",
+							"    \"5651\": \"Family Clothing Stores\",\n",
+							"    \"4899\": \"Cable, Satellite, and Other Pay Television Services\",\n",
+							"    \"5251\": \"Hardware Stores\",\n",
+							"    \"7995\": \"Betting (including Lottery Tickets, Casinos)\",\n",
+							"    \"3596\": \"Miscellaneous Machinery and Parts Manufacturing\",\n",
+							"    \"3730\": \"Ship Chandlers\",\n",
+							"    \"9402\": \"Postal Services - Government Only\",\n",
+							"    \"7801\": \"Athletic Fields, Commercial Sports\",\n",
+							"    \"5970\": \"Artist Supply Stores, Craft Shops\",\n",
+							"    \"5932\": \"Antique Shops\",\n",
+							"    \"5621\": \"Women's Ready-To-Wear Stores\",\n",
+							"    \"7349\": \"Cleaning and Maintenance Services\",\n",
+							"    \"4722\": \"Travel Agencies\",\n",
+							"    \"5193\": \"Florists Supplies, Nursery Stock and Flowers\",\n",
+							"    \"3775\": \"Railroad Freight\",\n",
+							"    \"3684\": \"Semiconductors and Related Devices\",\n",
+							"    \"5045\": \"Computers, Computer Peripheral Equipment\",\n",
+							"    \"3504\": \"Gardening Supplies\",\n",
+							"    \"7011\": \"Lodging - Hotels, Motels, Resorts\",\n",
+							"    \"8041\": \"Chiropractors\",\n",
+							"    \"4214\": \"Motor Freight Carriers and Trucking\",\n",
+							"    \"6300\": \"Insurance Sales, Underwriting\",\n",
+							"    \"8011\": \"Doctors, Physicians\",\n",
+							"    \"3509\": \"Industrial Equipment and Supplies\",\n",
+							"    \"7210\": \"Laundry Services\",\n",
+							"    \"5192\": \"Books, Periodicals, Newspapers\",\n",
+							"    \"7542\": \"Car Washes\",\n",
+							"    \"3640\": \"Lighting, Fixtures, Electrical Supplies\",\n",
+							"    \"7393\": \"Detective Agencies, Security Services\",\n",
+							"    \"8111\": \"Legal Services and Attorneys\",\n",
+							"    \"3771\": \"Railroad Passenger Transport\",\n",
+							"    \"5732\": \"Electronics Stores\",\n",
+							"    \"5094\": \"Precious Stones and Metals\",\n",
+							"    \"5712\": \"Furniture, Home Furnishings, and Equipment Stores\",\n",
+							"    \"5816\": \"Digital Goods - Games\",\n",
+							"    \"7802\": \"Recreational Sports, Clubs\",\n",
+							"    \"3389\": \"Non-Precious Metal Services\",\n",
+							"    \"8043\": \"Optometrists, Optical Goods and Eyeglasses\",\n",
+							"    \"3393\": \"Heat Treating Metal Services\",\n",
+							"    \"3174\": \"Upholstery and Drapery Stores\",\n",
+							"    \"3001\": \"Steel Products Manufacturing\",\n",
+							"    \"3395\": \"Welding Repair\",\n",
+							"    \"3058\": \"Tools, Parts, Supplies Manufacturing\",\n",
+							"    \"8049\": \"Podiatrists\",\n",
+							"    \"3387\": \"Electroplating, Plating, Polishing Services\",\n",
+							"    \"4112\": \"Passenger Railways\",\n",
+							"    \"3405\": \"Ironwork\",\n",
+							"    \"5261\": \"Lawn and Garden Supply Stores\",\n",
+							"    \"3144\": \"Floor Covering Stores\",\n",
+							"    \"3132\": \"Leather Goods\",\n",
+							"    \"3359\": \"Non-Ferrous Metal Foundries\",\n",
+							"    \"8931\": \"Accounting, Auditing, and Bookkeeping Services\",\n",
+							"    \"8062\": \"Hospitals\",\n",
+							"    \"7276\": \"Tax Preparation Services\",\n",
+							"    \"4131\": \"Bus Lines\",\n",
+							"    \"3260\": \"Pottery and Ceramics\",\n",
+							"    \"3256\": \"Brick, Stone, and Related Materials\",\n",
+							"    \"3006\": \"Miscellaneous Fabricated Metal Products\",\n",
+							"    \"7531\": \"Automotive Body Repair Shops\",\n",
+							"    \"1711\": \"Heating, Plumbing, Air Conditioning Contractors\",\n",
+							"    \"5947\": \"Gift, Card, Novelty Stores\",\n",
+							"    \"3007\": \"Coated and Laminated Products\",\n",
+							"    \"4511\": \"Airlines\",\n",
+							"    \"3075\": \"Bolt, Nut, Screw, Rivet Manufacturing\",\n",
+							"    \"3066\": \"Miscellaneous Metals\",\n",
+							"    \"3005\": \"Miscellaneous Metal Fabrication\",\n",
+							"    \"4411\": \"Cruise Lines\",\n",
+							"    \"3000\": \"Steelworks\",\n",
+							"    \"5533\": \"Automotive Parts and Accessories Stores\",\n",
+							"    \"3008\": \"Steel Drums and Barrels\",\n",
+							"    \"7549\": \"Towing Services\",\n",
+							"    \"5941\": \"Sporting Goods Stores\",\n",
+							"    \"5722\": \"Household Appliance Stores\",\n",
+							"    \"3009\": \"Fabricated Structural Metal Products\",\n",
+							"    \"5733\": \"Music Stores - Musical Instruments\"\n",
+							"}\n",
+							"\n",
+							"mcc_df = spark.createDataFrame(\n",
+							"    [(k, v) for k, v in mcc_dict.items()],\n",
+							"    [\"mcc\", \"mcc_description\"]\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 46
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"dim_merchant_enriched = (\n",
+							"    dim_merchant\n",
+							"    .join(mcc_df, on=\"mcc\", how=\"left\")\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 47
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Transactions_Bronze_Notebook')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "smallpool",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"runAsWorkspaceSystemIdentity": false,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "b844c4a9-8906-4ce6-a587-18b729456f11"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"synapse_widget": {
+						"version": "0.1"
+					},
+					"enableDebugMode": false,
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+						"name": "smallpool",
+						"type": "Spark",
+						"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net",
+							"authHeader": null
+						},
+						"sparkVersion": "3.5",
+						"nodeCount": 10,
+						"cores": 4,
+						"memory": 28,
+						"extraHeader": null
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**STEP 1 — Get All Bronze Files**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"bronze_path = \"abfss://bronze@ckrsynstorage.dfs.core.windows.net/transactions/\"\n",
+							"\n",
+							"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/transactions_cleaned/\"\n",
+							"\n",
+							"processed_files_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/metadata/processed_files/\"\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"all_files = mssparkutils.fs.ls(bronze_path)\n",
+							"\n",
+							"all_file_names = [file.name for file in all_files]\n",
+							"\n",
+							"print(all_file_names)"
+						],
+						"outputs": [],
+						"execution_count": 20
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**STEP 2 — Read Processed Files Table**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"run_control": {
+								"frozen": true
+							},
+							"editable": false
+						},
+						"source": [
+							"from delta.tables import DeltaTable\n",
+							"\n",
+							"processed_table_exists = DeltaTable.isDeltaTable(\n",
+							"    spark,\n",
+							"    processed_files_path\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"run_control": {
+								"frozen": true
+							},
+							"editable": false
+						},
+						"source": [
+							"from pyspark.sql.types import *\n",
+							"\n",
+							"if not processed_table_exists:\n",
+							"\n",
+							"    schema = StructType([\n",
+							"        StructField(\"file_name\", StringType(), True),\n",
+							"        StructField(\"processed_time\", TimestampType(), True)\n",
+							"    ])\n",
+							"\n",
+							"    empty_df = spark.createDataFrame([], schema)\n",
+							"\n",
+							"    (\n",
+							"        empty_df.write\n",
+							"        .format(\"delta\")\n",
+							"        .mode(\"overwrite\")\n",
+							"        .save(processed_files_path)\n",
+							"    )\n",
+							"\n",
+							"    processed_files = []\n",
+							"\n",
+							"else:\n",
+							"\n",
+							"    processed_df = spark.read.format(\"delta\").load(processed_files_path)\n",
+							"\n",
+							"    processed_files = [\n",
+							"        row.file_name\n",
+							"        for row in processed_df.collect()\n",
+							"    ]"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"run_control": {
+								"frozen": false
+							},
+							"editable": true
+						},
+						"source": [
+							"try:\n",
+							"    processed_df = spark.read.format(\"delta\").load(processed_files_path)\n",
+							"\n",
+							"    processed_files = [row.file_name for row in processed_df.collect()]\n",
+							"    print(processed_files)\n",
+							"except:\n",
+							"    processed_files = []"
+						],
+						"outputs": [],
+						"execution_count": 31
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**STEP 3 — Find ONLY New Files**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from notebookutils import mssparkutils\n",
+							"\n",
+							"new_files = list(set(all_file_names) - set(processed_files))\n",
+							"\n",
+							"print(new_files)\n",
+							"\n",
+							"if len(new_files) == 0:\n",
+							"    print(\"No new files found\")\n",
+							"    mssparkutils.notebook.exit(\"No new files to process\")"
+						],
+						"outputs": [],
+						"execution_count": 22
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**STEP 4 — Read ONLY New Files**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql.functions import *\n",
+							"\n",
+							"new_file_paths = [\n",
+							"    bronze_path + file_name\n",
+							"    for file_name in new_files\n",
+							"]\n",
+							"\n",
+							"df_new = spark.read.parquet(*new_file_paths)\n",
+							"\n",
+							"df_new.show()"
+						],
+						"outputs": [],
+						"execution_count": 23
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**STEP 5 — Transform Data**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql.functions import col, to_date, year, month, date_format\n",
+							"\n",
+							"df_new = (\n",
+							"    df_new\n",
+							"    .withColumn(\"txn_date\", to_date(col(\"date\")))\n",
+							"    .withColumn(\"txn_year\", year(col(\"date\")))\n",
+							"    .withColumn(\"txn_month_name\", date_format(col(\"date\"), \"MMMM\"))\n",
+							"    .withColumn(\"silver_load_time\", current_timestamp())\n",
+							")\n",
+							""
+						],
+						"outputs": [],
+						"execution_count": 24
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"df_new = df_new.dropDuplicates([\"transaction_id\"])"
+						],
+						"outputs": [],
+						"execution_count": 25
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**MERGE into Silver Delta**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from delta.tables import *\n",
+							"\n",
+							"if DeltaTable.isDeltaTable(spark, silver_path):\n",
+							"\n",
+							"    silver_tbl = DeltaTable.forPath(spark, silver_path)\n",
+							"\n",
+							"    (\n",
+							"        silver_tbl.alias(\"t\")\n",
+							"        .merge(\n",
+							"            df_new.alias(\"s\"),\n",
+							"            \"t.transaction_id = s.transaction_id\"\n",
+							"        )\n",
+							"        .whenMatchedUpdateAll()\n",
+							"        .whenNotMatchedInsertAll()\n",
+							"        .execute()\n",
+							"    )\n",
+							"\n",
+							"else:\n",
+							"\n",
+							"    (\n",
+							"        df_new.write\n",
+							"        .format(\"delta\")\n",
+							"        .partitionBy(\"txn_year\",\"txn_month_name\")\n",
+							"        .mode(\"overwrite\")\n",
+							"        .save(silver_path)\n",
+							"    )"
+						],
+						"outputs": [],
+						"execution_count": 26
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"**Update Processed Files Metadata**"
+						]
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"from pyspark.sql import Row\n",
+							"from pyspark.sql.functions import current_timestamp\n",
+							"\n",
+							"processed_rows = [\n",
+							"    Row(file_name=file_name)\n",
+							"    for file_name in new_files\n",
+							"]\n",
+							"\n",
+							"processed_new_df = spark.createDataFrame(processed_rows)\n",
+							"\n",
+							"processed_new_df = processed_new_df.withColumn(\n",
+							"    \"processed_time\",\n",
+							"    current_timestamp()\n",
+							")\n",
+							"\n",
+							"(\n",
+							"    processed_new_df.write\n",
+							"    .format(\"delta\")\n",
+							"    .mode(\"append\")\n",
+							"    .save(processed_files_path)\n",
+							")"
+						],
+						"outputs": [],
+						"execution_count": 30
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+							"\n",
+							"silver_df.show(10)"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"silver_df.printSchema()"
+						],
+						"outputs": [],
+						"execution_count": 3
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/smallpool')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"autoPause": {
+					"enabled": true,
+					"delayInMinutes": 15
+				},
+				"autoScale": {
+					"enabled": true,
+					"maxNodeCount": 3,
+					"minNodeCount": 3
+				},
+				"nodeCount": 10,
+				"nodeSize": "Small",
+				"nodeSizeFamily": "MemoryOptimized",
+				"sparkVersion": "3.5",
+				"isComputeIsolationEnabled": false,
+				"sessionLevelPackagesEnabled": false,
+				"annotations": []
+			},
+			"dependsOn": [],
+			"location": "australiaeast"
+		}
+	]
+}

@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "ckrsynwp"
+		},
+		"ckrsynwp-WorkspaceDefaultSqlServer_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=tcp:ckrsynwp.sql.azuresynapse.net,1433;Initial Catalog=@{linkedService().DBName}"
+		},
+		"ckrsynwp-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://ckrsynstorage.dfs.core.windows.net"
+		},
+		"transactions_event_trigger_properties_typeProperties_scope": {
+			"value": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Storage/storageAccounts/ckrsynstorage"
+		}
+	}
+}
