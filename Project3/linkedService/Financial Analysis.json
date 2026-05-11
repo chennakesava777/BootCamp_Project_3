@@ -1,0 +1,12 @@
+{
+	"name": "Financial Analysis",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "PowerBIWorkspace",
+		"typeProperties": {
+			"workspaceID": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp",
+			"tenantID": "0131e67a-94fb-4477-94c9-2905eb13a539"
+		}
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"name": "dim_cards_external_table",
+	"properties": {
+		"content": {
+			"query": "--drop EXTERNAL table dim_cards\n\nCREATE EXTERNAL TABLE dbo.dim_cards\n(\n    client_id VARCHAR(100),\n    card_brand VARCHAR(50),\n    card_type VARCHAR(50),\n    card_number VARCHAR(50),\n    has_chip VARCHAR(10),\n    num_cards_issued INT,\n    credit_limit FLOAT,\n    acct_open_date DATE,\n    year_pin_last_changed INT,\n    card_on_dark_web VARCHAR(10),\n    card_id VARCHAR(100),\n    load_date DATE,\n    load_timestamp DATETIME2,\n    source_folder VARCHAR(255),\n    expiry_month INT,\n    expiry_year INT\n)\nWITH (\n    LOCATION = 'dim_cards',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_cards\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

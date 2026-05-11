@@ -1,0 +1,17 @@
+{
+	"name": "Creating External location and format",
+	"properties": {
+		"content": {
+			"query": "-- =====================================================\n-- CREATE DATABASE (Optional)\n-- =====================================================\n\nCREATE DATABASE gold_db;\nGO\n\nUSE gold_db;\nGO\n\n-- DATA SOURCE pointing to ADLS Gen2\nCREATE EXTERNAL DATA SOURCE MyDataLake\nWITH (\n    LOCATION = 'https://ckrsynstorage.dfs.core.windows.net/gold'\n);\n\n--drop external data source MyDataLake2\n\nCREATE EXTERNAL DATA SOURCE MyDataLake2\nWITH (\n    LOCATION = 'https://ckrsynstorage.dfs.core.windows.net/'\n);\n\n\n-- Delta format definition\nCREATE EXTERNAL FILE FORMAT DeltaFormat\nWITH (\n    FORMAT_TYPE = DELTA\n);\n\n\nCREATE EXTERNAL FILE FORMAT parquet_format\nWITH (\n    FORMAT_TYPE = PARQUET\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

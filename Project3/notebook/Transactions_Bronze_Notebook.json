@@ -1,0 +1,374 @@
+{
+	"name": "Transactions_Bronze_Notebook",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "smallpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "b844c4a9-8906-4ce6-a587-18b729456f11"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1"
+			},
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+				"name": "smallpool",
+				"type": "Spark",
+				"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**STEP 1 — Get All Bronze Files**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"bronze_path = \"abfss://bronze@ckrsynstorage.dfs.core.windows.net/transactions/\"\n",
+					"\n",
+					"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/transactions_cleaned/\"\n",
+					"\n",
+					"processed_files_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/metadata/processed_files/\"\n",
+					""
+				],
+				"execution_count": 1
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"all_files = mssparkutils.fs.ls(bronze_path)\n",
+					"\n",
+					"all_file_names = [file.name for file in all_files]\n",
+					"\n",
+					"print(all_file_names)"
+				],
+				"execution_count": 20
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**STEP 2 — Read Processed Files Table**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"run_control": {
+						"frozen": true
+					},
+					"editable": false
+				},
+				"source": [
+					"from delta.tables import DeltaTable\n",
+					"\n",
+					"processed_table_exists = DeltaTable.isDeltaTable(\n",
+					"    spark,\n",
+					"    processed_files_path\n",
+					")"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"run_control": {
+						"frozen": true
+					},
+					"editable": false
+				},
+				"source": [
+					"from pyspark.sql.types import *\n",
+					"\n",
+					"if not processed_table_exists:\n",
+					"\n",
+					"    schema = StructType([\n",
+					"        StructField(\"file_name\", StringType(), True),\n",
+					"        StructField(\"processed_time\", TimestampType(), True)\n",
+					"    ])\n",
+					"\n",
+					"    empty_df = spark.createDataFrame([], schema)\n",
+					"\n",
+					"    (\n",
+					"        empty_df.write\n",
+					"        .format(\"delta\")\n",
+					"        .mode(\"overwrite\")\n",
+					"        .save(processed_files_path)\n",
+					"    )\n",
+					"\n",
+					"    processed_files = []\n",
+					"\n",
+					"else:\n",
+					"\n",
+					"    processed_df = spark.read.format(\"delta\").load(processed_files_path)\n",
+					"\n",
+					"    processed_files = [\n",
+					"        row.file_name\n",
+					"        for row in processed_df.collect()\n",
+					"    ]"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"run_control": {
+						"frozen": false
+					},
+					"editable": true
+				},
+				"source": [
+					"try:\n",
+					"    processed_df = spark.read.format(\"delta\").load(processed_files_path)\n",
+					"\n",
+					"    processed_files = [row.file_name for row in processed_df.collect()]\n",
+					"    print(processed_files)\n",
+					"except:\n",
+					"    processed_files = []"
+				],
+				"execution_count": 31
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**STEP 3 — Find ONLY New Files**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from notebookutils import mssparkutils\n",
+					"\n",
+					"new_files = list(set(all_file_names) - set(processed_files))\n",
+					"\n",
+					"print(new_files)\n",
+					"\n",
+					"if len(new_files) == 0:\n",
+					"    print(\"No new files found\")\n",
+					"    mssparkutils.notebook.exit(\"No new files to process\")"
+				],
+				"execution_count": 22
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**STEP 4 — Read ONLY New Files**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import *\n",
+					"\n",
+					"new_file_paths = [\n",
+					"    bronze_path + file_name\n",
+					"    for file_name in new_files\n",
+					"]\n",
+					"\n",
+					"df_new = spark.read.parquet(*new_file_paths)\n",
+					"\n",
+					"df_new.show()"
+				],
+				"execution_count": 23
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**STEP 5 — Transform Data**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql.functions import col, to_date, year, month, date_format\n",
+					"\n",
+					"df_new = (\n",
+					"    df_new\n",
+					"    .withColumn(\"txn_date\", to_date(col(\"date\")))\n",
+					"    .withColumn(\"txn_year\", year(col(\"date\")))\n",
+					"    .withColumn(\"txn_month_name\", date_format(col(\"date\"), \"MMMM\"))\n",
+					"    .withColumn(\"silver_load_time\", current_timestamp())\n",
+					")\n",
+					""
+				],
+				"execution_count": 24
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"df_new = df_new.dropDuplicates([\"transaction_id\"])"
+				],
+				"execution_count": 25
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**MERGE into Silver Delta**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from delta.tables import *\n",
+					"\n",
+					"if DeltaTable.isDeltaTable(spark, silver_path):\n",
+					"\n",
+					"    silver_tbl = DeltaTable.forPath(spark, silver_path)\n",
+					"\n",
+					"    (\n",
+					"        silver_tbl.alias(\"t\")\n",
+					"        .merge(\n",
+					"            df_new.alias(\"s\"),\n",
+					"            \"t.transaction_id = s.transaction_id\"\n",
+					"        )\n",
+					"        .whenMatchedUpdateAll()\n",
+					"        .whenNotMatchedInsertAll()\n",
+					"        .execute()\n",
+					"    )\n",
+					"\n",
+					"else:\n",
+					"\n",
+					"    (\n",
+					"        df_new.write\n",
+					"        .format(\"delta\")\n",
+					"        .partitionBy(\"txn_year\",\"txn_month_name\")\n",
+					"        .mode(\"overwrite\")\n",
+					"        .save(silver_path)\n",
+					"    )"
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "markdown",
+				"metadata": {
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"**Update Processed Files Metadata**"
+				]
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"from pyspark.sql import Row\n",
+					"from pyspark.sql.functions import current_timestamp\n",
+					"\n",
+					"processed_rows = [\n",
+					"    Row(file_name=file_name)\n",
+					"    for file_name in new_files\n",
+					"]\n",
+					"\n",
+					"processed_new_df = spark.createDataFrame(processed_rows)\n",
+					"\n",
+					"processed_new_df = processed_new_df.withColumn(\n",
+					"    \"processed_time\",\n",
+					"    current_timestamp()\n",
+					")\n",
+					"\n",
+					"(\n",
+					"    processed_new_df.write\n",
+					"    .format(\"delta\")\n",
+					"    .mode(\"append\")\n",
+					"    .save(processed_files_path)\n",
+					")"
+				],
+				"execution_count": 30
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+					"\n",
+					"silver_df.show(10)"
+				],
+				"execution_count": 2
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"silver_df.printSchema()"
+				],
+				"execution_count": 3
+			}
+		]
+	}
+}

@@ -1,0 +1,553 @@
+{
+	"name": "Cards_Bronze_Notebook",
+	"properties": {
+		"nbformat": 4,
+		"nbformat_minor": 2,
+		"bigDataPool": {
+			"referenceName": "smallpool",
+			"type": "BigDataPoolReference"
+		},
+		"sessionProperties": {
+			"driverMemory": "28g",
+			"driverCores": 4,
+			"executorMemory": "28g",
+			"executorCores": 4,
+			"numExecutors": 2,
+			"runAsWorkspaceSystemIdentity": false,
+			"conf": {
+				"spark.dynamicAllocation.enabled": "false",
+				"spark.dynamicAllocation.minExecutors": "2",
+				"spark.dynamicAllocation.maxExecutors": "2",
+				"spark.autotune.trackingId": "e7a097f5-2a44-486a-bc2e-a75705ab8ac6"
+			}
+		},
+		"metadata": {
+			"saveOutput": true,
+			"synapse_widget": {
+				"version": "0.1",
+				"state": {
+					"554e6005-5e84-46c3-aac7-526519dbf3a3": {
+						"type": "Synapse.DataFrame",
+						"sync_state": {
+							"table": {
+								"rows": [
+									{
+										"0": "825",
+										"1": "Visa",
+										"2": "Debit",
+										"3": "****",
+										"4": "12/2022",
+										"5": "YES",
+										"6": "2",
+										"7": "$24,295",
+										"8": "09/2002",
+										"9": "2008",
+										"10": "No",
+										"11": "4524",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "825",
+										"1": "Visa",
+										"2": "Debit",
+										"3": "****",
+										"4": "12/2020",
+										"5": "YES",
+										"6": "2",
+										"7": "$21,968",
+										"8": "04/2014",
+										"9": "2014",
+										"10": "No",
+										"11": "2731",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "825",
+										"1": "Visa",
+										"2": "Debit",
+										"3": "****",
+										"4": "02/2024",
+										"5": "YES",
+										"6": "2",
+										"7": "$46,414",
+										"8": "07/2003",
+										"9": "2004",
+										"10": "No",
+										"11": "3701",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "825",
+										"1": "Visa",
+										"2": "Credit",
+										"3": "****",
+										"4": "08/2024",
+										"5": "NO",
+										"6": "1",
+										"7": "$12,400",
+										"8": "01/2003",
+										"9": "2012",
+										"10": "No",
+										"11": "42",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "825",
+										"1": "Mastercard",
+										"2": "Debit (Prepaid)",
+										"3": "****",
+										"4": "03/2009",
+										"5": "YES",
+										"6": "1",
+										"7": "$28",
+										"8": "09/2008",
+										"9": "2009",
+										"10": "No",
+										"11": "4659",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "1746",
+										"1": "Visa",
+										"2": "Credit",
+										"3": "****",
+										"4": "09/2003",
+										"5": "YES",
+										"6": "1",
+										"7": "$27,500",
+										"8": "09/2003",
+										"9": "2012",
+										"10": "No",
+										"11": "4537",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "1746",
+										"1": "Visa",
+										"2": "Debit",
+										"3": "****",
+										"4": "07/2022",
+										"5": "YES",
+										"6": "2",
+										"7": "$28,508",
+										"8": "02/2011",
+										"9": "2011",
+										"10": "No",
+										"11": "1278",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "1746",
+										"1": "Mastercard",
+										"2": "Debit",
+										"3": "****",
+										"4": "06/2022",
+										"5": "YES",
+										"6": "2",
+										"7": "$9,022",
+										"8": "07/2003",
+										"9": "2015",
+										"10": "No",
+										"11": "3687",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "1746",
+										"1": "Mastercard",
+										"2": "Debit (Prepaid)",
+										"3": "****",
+										"4": "11/2020",
+										"5": "YES",
+										"6": "2",
+										"7": "$54",
+										"8": "06/2010",
+										"9": "2015",
+										"10": "No",
+										"11": "3465",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									},
+									{
+										"0": "1746",
+										"1": "Mastercard",
+										"2": "Debit (Prepaid)",
+										"3": "****",
+										"4": "02/2023",
+										"5": "YES",
+										"6": "1",
+										"7": "$99",
+										"8": "07/2006",
+										"9": "2012",
+										"10": "No",
+										"11": "3754",
+										"12": "2026-05-11",
+										"13": "2026-05-11 16:34:07.013824",
+										"14": "2026-05-11"
+									}
+								],
+								"schema": [
+									{
+										"key": "0",
+										"name": "client_id",
+										"type": "string"
+									},
+									{
+										"key": "1",
+										"name": "card_brand",
+										"type": "string"
+									},
+									{
+										"key": "2",
+										"name": "card_type",
+										"type": "string"
+									},
+									{
+										"key": "3",
+										"name": "card_number",
+										"type": "string"
+									},
+									{
+										"key": "4",
+										"name": "expires",
+										"type": "string"
+									},
+									{
+										"key": "5",
+										"name": "has_chip",
+										"type": "string"
+									},
+									{
+										"key": "6",
+										"name": "num_cards_issued",
+										"type": "string"
+									},
+									{
+										"key": "7",
+										"name": "credit_limit",
+										"type": "string"
+									},
+									{
+										"key": "8",
+										"name": "acct_open_date",
+										"type": "string"
+									},
+									{
+										"key": "9",
+										"name": "year_pin_last_changed",
+										"type": "string"
+									},
+									{
+										"key": "10",
+										"name": "card_on_dark_web",
+										"type": "string"
+									},
+									{
+										"key": "11",
+										"name": "card_id",
+										"type": "string"
+									},
+									{
+										"key": "12",
+										"name": "load_date",
+										"type": "date"
+									},
+									{
+										"key": "13",
+										"name": "load_timestamp",
+										"type": "timestamp"
+									},
+									{
+										"key": "14",
+										"name": "source_folder",
+										"type": "string"
+									}
+								],
+								"truncated": false
+							},
+							"isSummary": false,
+							"language": "scala",
+							"wranglerEntryContext": {
+								"dataframeType": "pyspark"
+							}
+						},
+						"persist_state": {
+							"view": {
+								"type": "details",
+								"chartOptions": {
+									"chartType": "bar",
+									"aggregationType": "count",
+									"categoryFieldKeys": [
+										"0"
+									],
+									"seriesFieldKeys": [
+										"0"
+									],
+									"isStacked": false
+								}
+							}
+						}
+					}
+				}
+			},
+			"enableDebugMode": false,
+			"language_info": {
+				"name": "python"
+			},
+			"a365ComputeOptions": {
+				"id": "/subscriptions/82ddcbcd-46be-4b82-b86c-9c1142997abb/resourceGroups/CKR_Group1/providers/Microsoft.Synapse/workspaces/ckrsynwp/bigDataPools/smallpool",
+				"name": "smallpool",
+				"type": "Spark",
+				"endpoint": "https://ckrsynwp.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/smallpool",
+				"auth": {
+					"type": "AAD",
+					"authResource": "https://dev.azuresynapse.net",
+					"authHeader": null
+				},
+				"sparkVersion": "3.5",
+				"nodeCount": 10,
+				"cores": 4,
+				"memory": 28,
+				"extraHeader": null
+			},
+			"sessionKeepAliveTimeout": 30
+		},
+		"cells": [
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 1 — IMPORT REQUIRED LIBRARIES\n",
+					"# =====================================================\n",
+					"\n",
+					"from notebookutils import mssparkutils\n",
+					"\n",
+					"from pyspark.sql.functions import *\n",
+					"from pyspark.sql.types import *"
+				],
+				"execution_count": 3
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 2 — DEFINE BRONZE & SILVER PATHS\n",
+					"# =====================================================\n",
+					"\n",
+					"bronze_base_path = \"abfss://bronze@ckrsynstorage.dfs.core.windows.net/cards/\"\n",
+					"silver_path = \"abfss://silver@ckrsynstorage.dfs.core.windows.net/cards_cleaned/\""
+				],
+				"execution_count": 4
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 3 — GET ALL DATE FOLDERS\n",
+					"# =====================================================\n",
+					"\n",
+					"folders = mssparkutils.fs.ls(bronze_base_path)\n",
+					"\n",
+					"date_folders = [\n",
+					"    folder.name.replace(\"/\", \"\")\n",
+					"    for folder in folders\n",
+					"    if folder.isDir\n",
+					"]\n",
+					"\n",
+					"print(date_folders)"
+				],
+				"execution_count": 5
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 4 — FIND LATEST DATE FOLDER\n",
+					"# =====================================================\n",
+					"\n",
+					"import builtins\n",
+					"\n",
+					"latest_folder = builtins.max(date_folders)\n",
+					"print(\"Latest Folder:\", latest_folder)"
+				],
+				"execution_count": 6
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 5 — BUILD FULL PATH OF LATEST FOLDER\n",
+					"# =====================================================\n",
+					"\n",
+					"latest_folder_path = bronze_base_path + latest_folder + \"/\"\n",
+					"\n",
+					"print(latest_folder_path)"
+				],
+				"execution_count": 7
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 6 — GET FILES INSIDE LATEST FOLDER\n",
+					"# =====================================================\n",
+					"\n",
+					"files = mssparkutils.fs.ls(latest_folder_path)\n",
+					"\n",
+					"data_files = [\n",
+					"    file.path\n",
+					"    for file in files\n",
+					"    if file.name.endswith(\".parquet\")\n",
+					"]\n",
+					"\n",
+					"print(data_files)"
+				],
+				"execution_count": 8
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 7 — CHECK IF FILE EXISTS\n",
+					"# =====================================================\n",
+					"\n",
+					"if len(data_files) == 0:\n",
+					"    \n",
+					"    print(\"No parquet files found\")\n",
+					"    \n",
+					"    mssparkutils.notebook.exit(\n",
+					"        \"Notebook stopped - no files to process\"\n",
+					"    )"
+				],
+				"execution_count": 9
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 8 — READ PARQUET FILES\n",
+					"# =====================================================\n",
+					"\n",
+					"df = spark.read.parquet(*data_files)\n",
+					"\n",
+					"df.show(5)"
+				],
+				"execution_count": 10
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"collapsed": false
+				},
+				"source": [
+					"# =====================================================\n",
+					"# STEP 9 — APPLY TRANSFORMATIONS\n",
+					"# =====================================================\n",
+					"\n",
+					"df_transformed = (\n",
+					"    df\n",
+					"    .withColumn(\"card_id\",col(\"id\")).drop(col(\"id\"))\n",
+					"    .withColumn(\"load_date\", current_date())\n",
+					"    .withColumn(\"load_timestamp\", current_timestamp())\n",
+					"    .withColumn(\"source_folder\", lit(latest_folder))\n",
+					"    .withColumn(\"card_number\", lit(\"****\"))\n",
+					"    .drop(\"cvv\")\n",
+					")\n",
+					"\n",
+					"\n",
+					"display(df_transformed.limit(10))"
+				],
+				"execution_count": 11
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 10 — OPTIONAL DATA CLEANING\n",
+					"# =====================================================\n",
+					"\n",
+					"df_cleaned = (\n",
+					"    df_transformed\n",
+					"    .dropDuplicates([\"card_id\"])\n",
+					"    .filter(col(\"card_id\").isNotNull())\n",
+					")"
+				],
+				"execution_count": 12
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 11 — WRITE TO SILVER DELTA TABLE\n",
+					"# =====================================================\n",
+					"\n",
+					"(\n",
+					"    df_cleaned\n",
+					"    .write\n",
+					"    .format(\"delta\")\n",
+					"    .mode(\"append\")\n",
+					"    .save(silver_path)\n",
+					")"
+				],
+				"execution_count": 13
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"run_control": {
+						"frozen": true
+					},
+					"editable": false
+				},
+				"source": [
+					"# =====================================================\n",
+					"# STEP 12 — CREATE DELTA TABLE (OPTIONAL)\n",
+					"# =====================================================\n",
+					"\n",
+					"spark.sql(f\"\"\"\n",
+					"CREATE TABLE IF NOT EXISTS silver_users\n",
+					"USING DELTA\n",
+					"LOCATION '{silver_path}'\n",
+					"\"\"\")"
+				],
+				"execution_count": 26
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"# =====================================================\n",
+					"# STEP 13 — VALIDATE DATA\n",
+					"# =====================================================\n",
+					"\n",
+					"silver_df = spark.read.format(\"delta\").load(silver_path)\n",
+					"\n",
+					"silver_df.show(10)"
+				],
+				"execution_count": 14
+			},
+			{
+				"cell_type": "code",
+				"source": [
+					"silver_df.printSchema()"
+				],
+				"execution_count": 15
+			}
+		]
+	}
+}

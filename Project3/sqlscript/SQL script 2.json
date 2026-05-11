@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "SELECT \n    t.name,\n    ds.location AS data_source\nFROM sys.external_tables t\nJOIN sys.external_data_sources ds\n    ON t.data_source_id = ds.data_source_id\nWHERE t.name = 'gold_merchant_revenue';",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

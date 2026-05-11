@@ -1,0 +1,17 @@
+{
+	"name": "dim_users_external_table",
+	"properties": {
+		"content": {
+			"query": "\n--drop EXTERNAL table dim_users\n\nCREATE EXTERNAL TABLE dbo.dim_users\n(\n    current_age INT,\n    retirement_age INT,\n    birth_year INT,\n    birth_month INT,\n    gender VARCHAR(20),\n    address VARCHAR(500),\n    latitude FLOAT,\n    longitude FLOAT,\n    per_capita_income FLOAT,\n    yearly_income FLOAT,\n    total_debt FLOAT,\n    credit_score INT,\n    num_credit_cards INT,\n    load_date DATE,\n    load_timestamp DATETIME2,\n    source_folder VARCHAR(255),\n    client_id VARCHAR(100)\n)\nWITH (\n    LOCATION = 'dim_users',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\n\nselect * from dim_users",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

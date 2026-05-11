@@ -1,0 +1,17 @@
+{
+	"name": "Merchant revenue",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL TABLE gold_merchant_revenue\nWITH (\n    LOCATION = 'gold_merchant_revenue/',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = parquet_format\n)\nAS\nSELECT\n    merchant_id,\n    txn_year,\n    txn_month_name,\n    SUM(amount) AS total_revenue,\n    COUNT(*) AS txn_count,\n    AVG(amount) AS avg_ticket_size\nFROM fact_transactions AS t\nGROUP BY merchant_id, txn_year, txn_month_name;\n\nselect * from gold_merchant_revenue\n\ndrop external table gold_merchant_revenue",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

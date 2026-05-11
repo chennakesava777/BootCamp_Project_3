@@ -1,0 +1,17 @@
+{
+	"name": "dim_merchant_enriched_external_table",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL TABLE dbo.dim_merchant_enriched\n(\n    mcc VARCHAR(20),\n    merchant_id VARCHAR(100),\n    merchant_city VARCHAR(100),\n    merchant_state VARCHAR(100),\n    zip VARCHAR(20),\n    mcc_description VARCHAR(255)\n)\nWITH (\n    LOCATION = 'dim_merchant_enriched',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_merchant_enriched",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

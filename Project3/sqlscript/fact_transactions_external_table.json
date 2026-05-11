@@ -1,0 +1,17 @@
+{
+	"name": "fact_transactions_external_table",
+	"properties": {
+		"content": {
+			"query": "--drop EXTERNAL table dbo.fact_transactions\n\nCREATE EXTERNAL TABLE dbo.fact_transactions\n(\n    transaction_id VARCHAR(100),\n    txn_date DATE,\n    client_id VARCHAR(100),\n    card_id VARCHAR(100),\n    merchant_id VARCHAR(100),\n    amount FLOAT,\n    use_chip VARCHAR(20),\n    errors VARCHAR(500),\n    txn_year INT,\n    txn_month_name VARCHAR(20),\n    silver_load_time DATETIME2\n)\nWITH (\n    LOCATION = 'fact_transactions',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from fact_transactions",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

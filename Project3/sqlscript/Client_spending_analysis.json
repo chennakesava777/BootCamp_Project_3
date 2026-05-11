@@ -1,0 +1,17 @@
+{
+	"name": "Client_spending_analysis",
+	"properties": {
+		"content": {
+			"query": "CREATE EXTERNAL TABLE gold_client_spending\nWITH (\n    LOCATION = 'gold_client_spending',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = parquet_format\n)\nAS\nSELECT\n    client_id,\n    COUNT(*) AS total_transactions,\n    SUM(amount) AS total_spend,\n    AVG(amount) AS avg_transaction,\n    MAX(amount) AS max_transaction\nFROM fact_transactions AS t\nGROUP BY client_id;\n\nselect * from gold_client_spending",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

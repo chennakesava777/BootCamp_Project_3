@@ -1,0 +1,17 @@
+{
+	"name": "Creating views on silver tables",
+	"properties": {
+		"content": {
+			"query": "create view silver_users_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/users_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\n--drop view silver_transactions\n\ncreate view silver_transactions_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/transactions_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\ncreate view silver_cards_vw\nas\nSELECT *\nFROM OPENROWSET(\n    BULK 'https://ckrsynstorage.dfs.core.windows.net/silver/cards_cleaned/',\n    FORMAT = 'DELTA'\n) AS [result];\n\n\nselect * from silver_users_vw\n\nselect * from silver_transactions_vw\n\nselect * from silver_cards_vw\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "abc_bank",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

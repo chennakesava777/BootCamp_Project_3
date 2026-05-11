@@ -1,0 +1,17 @@
+{
+	"name": "dim_date_external_table",
+	"properties": {
+		"content": {
+			"query": "--drop external table dim_date\n\nCREATE EXTERNAL TABLE dbo.dim_date\n(\n    txn_date DATE,\n    txn_year INT,\n    txn_month_name VARCHAR(20)\n)\nWITH (\n    LOCATION = 'dim_date',\n    DATA_SOURCE = MyDataLake,\n    FILE_FORMAT = DeltaFormat\n);\n\nselect * from dim_date\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "gold_db",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
